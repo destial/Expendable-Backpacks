@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Suppress EI_EXPOSE_REP warnings - these are acceptable patterns in Bukkit plugins -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <!-- Suppress EI_EXPOSE_REP2 warnings - these are acceptable patterns in Bukkit plugins -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <!-- Suppress EI_EXPOSE_STATIC_REP2 warnings - plugin singleton pattern is standard in Bukkit -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_STATIC_REP2" />
+    </Match>
+</FindBugsFilter>

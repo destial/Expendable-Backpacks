@@ -1,0 +1,44 @@
+name: ExpendableBackpacks
+version: '1.0.0'
+main: com.shweit.expendablebackpacks.ExpendableBackpacks
+api-version: '1.21'
+author: Shweit
+description: Expendable Backpacks - Expandable Storage for Minecraft!
+
+commands:
+  backpack:
+    description: Main backpack command
+    usage: |
+      /backpack - Show crafting guide
+      /backpack give <player> <tier> - Give a backpack
+      /backpack open <uuid> - Open backpack by UUID
+      /backpack clear <uuid> - Clear backpack contents
+      /backpack clone <uuid> - Clone an Enderpack
+    permission: backpack.use
+    aliases: [bp]
+
+permissions:
+  backpack.use:
+    description: Use backpack command and open own backpacks
+    default: true
+  backpack.give:
+    description: Give backpacks to players
+    default: op
+  backpack.openOthers:
+    description: Open backpacks by UUID
+    default: op
+  backpack.clear:
+    description: Clear backpack contents
+    default: op
+  backpack.clone:
+    description: Clone Enderpacks
+    default: op
+  backpack.admin:
+    description: All backpack admin permissions
+    default: op
+    children:
+      backpack.use: true
+      backpack.give: true
+      backpack.openOthers: true
+      backpack.clear: true
+      backpack.clone: true

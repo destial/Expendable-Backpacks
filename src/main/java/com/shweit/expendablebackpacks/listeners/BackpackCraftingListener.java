@@ -1,0 +1,206 @@
+package com.shweit.expendablebackpacks.listeners;
+
+import com.shweit.expendablebackpacks.items.BackpackItem;
+import com.shweit.expendablebackpacks.items.BackpackTier;
+import com.shweit.expendablebackpacks.storage.BackpackManager;
+import java.util.UUID;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+
+/**
+ * Handles all backpack crafting logic.
+ * Supports stacked items and generates unique UUIDs.
+ */
+public class BackpackCraftingListener implements Listener {
+
+    private final BackpackManager backpackManager;
+    private final Plugin plugin;
+
+    /**
+     * Creates a new backpack crafting listener.
+     *
+     * @param backpackManager the backpack manager instance
+     * @param plugin the plugin instance
+     */
+    @SuppressWarnings("EI_EXPOSE_REP2")
+    public BackpackCraftingListener(BackpackManager backpackManager, Plugin plugin) {
+        this.backpackManager = backpackManager;
+        this.plugin = plugin;
+    }
+
+    /**
+     * Handles the crafting preparation event for backpacks.
+     *
+     * @param event the prepare item craft event
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onCraft(PrepareItemCraftEvent event) {
+        CraftingInventory inv = event.getInventory();
+        ItemStack[] matrix = inv.getMatrix();
+
+        if (matrix == null) {
+            return;
+        }
+
+        // Check for Enderpack cloning (1 Enderpack + 1 Pearl = 2 Enderpacks with same UUID)
+        // This is a shapeless recipe, works in any crafting grid
+        ItemStack enderpack = null;
+        boolean hasEnderPearl = false;
+        int totalItems = 0;
+
+        for (int i = 0; i < matrix.length; i++) {
+            ItemStack item = matrix[i];
+            if (item == null || item.getType() == Material.AIR) {
+                continue;
+            }
+            totalItems++;
+
+            if (BackpackItem.isBackpack(item)) {
+                BackpackTier tier = BackpackItem.getBackpackTier(item);
+                if (tier == BackpackTier.ENDERPACK && item.getAmount() == 1) {
+                    enderpack = item;
+                } else {
+                    enderpack = null;
+                    break;
+                }
+            } else if (item.getType() == Material.ENDER_PEARL && item.getAmount() == 1) {
+                hasEnderPearl = true;
+            } else {
+                enderpack = null;
+                break;
+            }
+        }
+
+        // If valid clone pattern: 1 Enderpack + 1 Pearl = 2 Enderpacks (same UUID)
+        if (enderpack != null && hasEnderPearl && totalItems == 2) {
+            ItemStack clonedEnderpack = BackpackItem.cloneBackpack(enderpack);
+            if (clonedEnderpack != null) {
+                clonedEnderpack.setAmount(2);
+                inv.setResult(clonedEnderpack);
+            }
+            return;
+        }
+
+        // Only check 3x3 patterns below
+        if (matrix.length != 9) {
+            return; // Not a 3x3 crafting grid
+        }
+
+        // Check for Enderpack crafting (new Enderpack)
+        if (isEnderpackPattern(matrix)) {
+            inv.setResult(BackpackItem.createBackpack(BackpackTier.ENDERPACK));
+            return;
+        }
+
+        // Check for upgrade patterns (center must be a backpack)
+        ItemStack center = matrix[4];
+        if (!BackpackItem.isBackpack(center)) {
+            return; // Not an upgrade
+        }
+
+        BackpackTier currentTier = BackpackItem.getBackpackTier(center);
+        if (currentTier == null) {
+            return;
+        }
+
+        // Check if center is surrounded by upgrade material
+        Material surrounding = getSurroundingMaterial(matrix);
+        if (surrounding == null) {
+            return;
+        }
+
+        // Determine target tier based on surrounding material
+        BackpackTier targetTier = null;
+
+        if (surrounding == Material.DIRT && currentTier == BackpackTier.LEATHER) {
+            targetTier = BackpackTier.DIRT;
+        } else if (surrounding == Material.COPPER_INGOT && currentTier == BackpackTier.LEATHER) {
+            targetTier = BackpackTier.COPPER;
+        } else if (surrounding == Material.IRON_INGOT && currentTier == BackpackTier.COPPER) {
+            targetTier = BackpackTier.IRON;
+        } else if (surrounding == Material.GOLD_INGOT && currentTier == BackpackTier.IRON) {
+            targetTier = BackpackTier.GOLD;
+        } else if (surrounding == Material.DIAMOND && currentTier == BackpackTier.GOLD) {
+            targetTier = BackpackTier.DIAMOND;
+        }
+
+        if (targetTier != null) {
+            // Upgrade preserves UUID (same inventory)
+            ItemStack upgraded = BackpackItem.upgradeBackpack(center, targetTier);
+            inv.setResult(upgraded);
+        }
+    }
+
+    /**
+     * Check if the pattern matches Enderpack crafting.
+     * E P E
+     * P C P
+     * E I E
+     *
+     * @param matrix the crafting matrix
+     * @return true if the pattern matches
+     */
+    private boolean isEnderpackPattern(ItemStack[] matrix) {
+        return isMaterial(matrix[0], Material.ENDER_EYE)
+               && isMaterial(matrix[1], Material.ENDER_PEARL)
+               && isMaterial(matrix[2], Material.ENDER_EYE)
+               && isMaterial(matrix[3], Material.ENDER_PEARL)
+               && isMaterial(matrix[4], Material.CHEST)
+               && isMaterial(matrix[5], Material.ENDER_PEARL)
+               && isMaterial(matrix[6], Material.ENDER_EYE)
+               && isMaterial(matrix[7], Material.IRON_BLOCK)
+               && isMaterial(matrix[8], Material.ENDER_EYE);
+    }
+
+    /**
+     * Get the material surrounding the center slot (ignoring amount).
+     * Returns null if not all 8 slots are the same material.
+     *
+     * @param matrix the crafting matrix
+     * @return the surrounding material or null
+     */
+    private Material getSurroundingMaterial(ItemStack[] matrix) {
+        // Indices: 0 1 2
+        //          3 4 5
+        //          6 7 8
+        // Center is 4, surrounding are: 0,1,2,3,5,6,7,8
+
+        int[] surrounding = {0, 1, 2, 3, 5, 6, 7, 8};
+        Material material = null;
+
+        for (int i : surrounding) {
+            ItemStack item = matrix[i];
+            if (item == null || item.getType() == Material.AIR) {
+                return null; // Empty slot
+            }
+            if (material == null) {
+                material = item.getType();
+            } else if (item.getType() != material) {
+                return null; // Different materials
+            }
+        }
+
+        return material;
+    }
+
+    /**
+     * Check if item is of given material (ignores amount for stacking support).
+     *
+     * @param item the item stack to check
+     * @param material the material to compare against
+     * @return true if the item is of the given material
+     */
+    private boolean isMaterial(ItemStack item, Material material) {
+        return item != null && item.getType() == material;
+    }
+}
