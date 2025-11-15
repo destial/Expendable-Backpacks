@@ -253,4 +253,20 @@ public class BackpackManager {
 
         return uuids;
     }
+
+    /**
+     * Find the UUID for a given inventory instance.
+     *
+     * @param inventory the inventory to find
+     * @return the UUID or null if not found
+     */
+    @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
+    public UUID findInventoryUUID(Inventory inventory) {
+        for (Map.Entry<UUID, Inventory> entry : loadedInventories.entrySet()) {
+            if (entry.getValue().equals(inventory)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
 }

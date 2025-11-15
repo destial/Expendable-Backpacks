@@ -6,9 +6,12 @@ import com.shweit.expendablebackpacks.storage.BackpackManager;
 import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -109,6 +112,43 @@ public class BackpackInteractionListener implements Listener {
     }
 
     /**
+     * Handles inventory click events for backpacks to auto-save on changes.
+     *
+     * @param event the inventory click event
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        Inventory clickedInventory = event.getClickedInventory();
+        if (clickedInventory == null) {
+            return;
+        }
+
+        @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
+        UUID backpackUUID = findBackpackUUID(clickedInventory);
+        if (backpackUUID != null) {
+            // Save inventory after the click is processed
+            backpackManager.saveInventory(backpackUUID, clickedInventory);
+        }
+    }
+
+    /**
+     * Handles inventory drag events for backpacks to auto-save on changes.
+     *
+     * @param event the inventory drag event
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        Inventory inventory = event.getInventory();
+
+        @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
+        UUID backpackUUID = findBackpackUUID(inventory);
+        if (backpackUUID != null) {
+            // Save inventory after the drag is processed
+            backpackManager.saveInventory(backpackUUID, inventory);
+        }
+    }
+
+    /**
      * Find the UUID of a backpack inventory by comparing instances.
      *
      * @param inventory the inventory to find
@@ -116,13 +156,7 @@ public class BackpackInteractionListener implements Listener {
      */
     @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
     private UUID findBackpackUUID(Inventory inventory) {
-        // Check loaded inventories
-        for (BackpackTier tier : BackpackTier.values()) {
-            // This is a simple implementation
-            // A more robust solution would track opened inventories
-        }
-        // For now, we rely on the auto-save on server shutdown
-        // TODO: Implement better tracking if needed
-        return null;
+        // Check all loaded inventories in the BackpackManager
+        return backpackManager.findInventoryUUID(inventory);
     }
 }

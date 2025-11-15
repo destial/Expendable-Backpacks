@@ -48,10 +48,6 @@ public class BackpackCraftingListener implements Listener {
         CraftingInventory inv = event.getInventory();
         ItemStack[] matrix = inv.getMatrix();
 
-        if (matrix == null) {
-            return;
-        }
-
         // Check for Enderpack cloning (1 Enderpack + 1 Pearl = 2 Enderpacks with same UUID)
         // This is a shapeless recipe, works in any crafting grid
         ItemStack enderpack = null;
