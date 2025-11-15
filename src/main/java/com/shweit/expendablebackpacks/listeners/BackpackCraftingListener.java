@@ -92,6 +92,12 @@ public class BackpackCraftingListener implements Listener {
             return; // Not a 3x3 crafting grid
         }
 
+        // Check for Leather Backpack crafting (new Leather Backpack with new UUID)
+        if (isLeatherBackpackPattern(matrix)) {
+            inv.setResult(BackpackItem.createBackpack(BackpackTier.LEATHER));
+            return;
+        }
+
         // Check for Enderpack crafting (new Enderpack)
         if (isEnderpackPattern(matrix)) {
             inv.setResult(BackpackItem.createBackpack(BackpackTier.ENDERPACK));
@@ -135,6 +141,27 @@ public class BackpackCraftingListener implements Listener {
             ItemStack upgraded = BackpackItem.upgradeBackpack(center, targetTier);
             inv.setResult(upgraded);
         }
+    }
+
+    /**
+     * Check if the pattern matches Leather Backpack crafting.
+     * L S L
+     * L C L
+     * L L L
+     *
+     * @param matrix the crafting matrix
+     * @return true if the pattern matches
+     */
+    private boolean isLeatherBackpackPattern(ItemStack[] matrix) {
+        return isMaterial(matrix[0], Material.LEATHER)
+               && isMaterial(matrix[1], Material.STRING)
+               && isMaterial(matrix[2], Material.LEATHER)
+               && isMaterial(matrix[3], Material.LEATHER)
+               && isMaterial(matrix[4], Material.CHEST)
+               && isMaterial(matrix[5], Material.LEATHER)
+               && isMaterial(matrix[6], Material.LEATHER)
+               && isMaterial(matrix[7], Material.LEATHER)
+               && isMaterial(matrix[8], Material.LEATHER);
     }
 
     /**
