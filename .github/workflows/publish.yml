@@ -44,6 +44,9 @@ jobs:
           modrinth-id: McclaWoP
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
 
+          curseforge-id: 1385805
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
           files: ${{ steps.jar.outputs.path }}
 
           name: Expendable Backpacks ${{ steps.version.outputs.version }}
