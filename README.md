@@ -3,7 +3,7 @@
 A comprehensive backpack plugin for Paper/Spigot servers featuring eight unique tiers, progressive upgrades, and shared storage capabilities through the Enderpack system.
 
 [![Minecraft](https://img.shields.io/badge/minecraft-1.21.1+-green.svg)](https://www.minecraft.net/)
-[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-%20%20GNU%20GPLv3%20-yellow?style=plastic)](LICENSE)
 
 ---
 
