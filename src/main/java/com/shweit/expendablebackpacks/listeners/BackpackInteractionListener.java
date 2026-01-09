@@ -14,6 +14,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +38,31 @@ public class BackpackInteractionListener implements Listener {
     }
 
     /**
+     * Handles player other hand item interaction with backpacks.
+     *
+     * @param event the player interact event
+     */
+    @EventHandler
+    public void onPlayerClick(PlayerAnimationEvent event) {
+        Player player = event.getPlayer();
+        if (event.getAnimationType() == PlayerAnimationType.OFF_ARM_SWING) {
+            ItemStack item = player.getInventory().getItemInMainHand();
+
+            if (BackpackItem.isBackpack(item)) {
+                event.setCancelled(true);
+            }
+            return;
+        }
+        if (event.getAnimationType() == PlayerAnimationType.ARM_SWING) {
+            ItemStack item = player.getInventory().getItemInOffHand();
+
+            if (BackpackItem.isBackpack(item)) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    /**
      * Handles player interaction with backpacks.
      *
      * @param event the player interact event
@@ -53,7 +80,7 @@ public class BackpackInteractionListener implements Listener {
         // Check if right-clicking on a backpack block
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Block clickedBlock = event.getClickedBlock();
-            if (clickedBlock != null && BackpackBlockUtil.isBackpackBlock(clickedBlock)) {
+            if (BackpackBlockUtil.isBackpackBlock(clickedBlock)) {
                 event.setCancelled(true);
                 openBackpackBlock(player, clickedBlock);
                 return;

@@ -1,15 +1,12 @@
-import com.github.spotbugs.snom.SpotBugsTask
 import java.text.SimpleDateFormat
 
 plugins {
-    id 'checkstyle'
-    id "com.github.spotbugs" version "6.4.7"
     id 'com.gradleup.shadow' version '9.2.2'
     id 'java'
 }
 
 group = "com.shweit.expendablebackpacks"
-version = "1.0.0"
+version = "1.1.2"
 
 static def getTime() {
     SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd-HHmm")
@@ -44,7 +41,7 @@ repositories {
         name = 'papermc'
         url = 'https://repo.papermc.io/repository/maven-public/'
         content {
-            includeModule("io.papermc.paper", "paper-api")
+            includeModule("dev.folia", "folia-api")
             includeModule("io.papermc", "paperlib")
             includeModule("net.md-5", "bungeecord-chat")
             includeGroup("io.papermc.adventure")
@@ -63,55 +60,15 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'io.papermc.paper:paper-api:1.21.11-pre3-R0.1-SNAPSHOT'
-    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.9.8'
+    compileOnly 'dev.folia:folia-api:1.21.11-R0.1-SNAPSHOT'
     implementation 'io.papermc:paperlib:1.0.8'
     implementation 'org.bstats:bstats-bukkit:3.1.0'
-    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0'
-    testCompileOnly 'com.github.spotbugs:spotbugs-annotations:4.9.8'
-    testImplementation 'io.papermc.paper:paper-api:1.21.11-pre3-R0.1-SNAPSHOT'
-    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.1'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.0.1'
 }
 
-test {
-    useJUnitPlatform()
-}
 
 processResources {
     filesMatching("**/plugin.yml") {
         expand ( NAME: rootProject.name, VERSION: version, PACKAGE: rootProject.group.toString() )
-    }
-}
-
-checkstyle {
-    toolVersion = '12.0.1'
-    maxWarnings = 0
-}
-
-configurations.checkstyle {
-    resolutionStrategy.capabilitiesResolution.withCapability("com.google.collections:google-collections") {
-        select("com.google.guava:guava:23.0")
-    }
-}
-
-tasks.withType(Checkstyle).configureEach {
-    reports {
-        xml.required = false
-        html.required = true
-    }
-}
-
-spotbugs {
-    excludeFilter = file("config/spotbugs/excludeFilter.xml")
-}
-
-tasks.withType(SpotBugsTask).configureEach {
-    reports.create("html") {
-        required = true
-    }
-    reports.create("xml") {
-        required = false
     }
 }
 

@@ -33,15 +33,19 @@ public class BackpackRecipes {
      * Upgrade recipes use ExactChoice with dummy backpacks to show correct icons.
      */
     public void registerAll() {
-        registerDirtBackpack();
-        registerLeatherBackpack();
-        registerCopperUpgrade();
-        registerIronUpgrade();
-        registerGoldUpgrade();
-        registerDiamondUpgrade();
-        registerEnderpack();
-        registerEnderpackClone();
-        registerNetheriteUpgrade();
+        try {
+            registerDirtBackpack();
+            registerLeatherBackpack();
+            registerCopperUpgrade();
+            registerIronUpgrade();
+            registerGoldUpgrade();
+            registerDiamondUpgrade();
+            registerEnderpack();
+            registerEnderpackClone();
+            registerNetheriteUpgrade();
+        } catch (IllegalStateException e) {
+            plugin.getLogger().warning("Already registered crafting recipes!");
+        }
     }
 
     /**

@@ -11,6 +11,7 @@ import com.shweit.expendablebackpacks.listeners.PlayerJoinListener;
 import com.shweit.expendablebackpacks.recipes.BackpackRecipes;
 import com.shweit.expendablebackpacks.storage.BackpackManager;
 import com.shweit.expendablebackpacks.util.BackpackBlockUtil;
+import com.shweit.expendablebackpacks.util.BackpackScheduler;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,9 +21,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ExpendableBackpacks extends JavaPlugin {
 
     private BackpackManager backpackManager;
+    private BackpackScheduler backpackScheduler;
+    private boolean shuttingDown = false;
 
     @Override
     public void onEnable() {
+        backpackScheduler = new BackpackScheduler(this);
+        shuttingDown = false;
         // Load configuration
         saveDefaultConfig();
 
@@ -70,6 +75,7 @@ public class ExpendableBackpacks extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        shuttingDown = true;
         getLogger().info("Saving all backpack inventories...");
 
         // Save all inventories
@@ -88,5 +94,25 @@ public class ExpendableBackpacks extends JavaPlugin {
     @SuppressWarnings("EI_EXPOSE_REP")
     public BackpackManager getBackpackManager() {
         return backpackManager;
+    }
+
+    /**
+     * Get the BackpackManager scheduler.
+     *
+     * @return the backpack scheduler
+     */
+    @SuppressWarnings("EI_EXPOSE_REP")
+    public BackpackScheduler getBackpackScheduler() {
+        return backpackScheduler;
+    }
+
+    /**
+     * Get if shutting down.
+     *
+     * @return shutting down
+     */
+    @SuppressWarnings("EI_EXPOSE_REP")
+    public boolean isShuttingDown() {
+        return shuttingDown;
     }
 }

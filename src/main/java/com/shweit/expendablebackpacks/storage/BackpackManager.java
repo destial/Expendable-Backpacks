@@ -1,5 +1,6 @@
 package com.shweit.expendablebackpacks.storage;
 
+import com.shweit.expendablebackpacks.ExpendableBackpacks;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,22 +8,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 
 /**
  * Manages backpack inventory storage and persistence.
  */
 public class BackpackManager {
 
-    private final Plugin plugin;
+    private final ExpendableBackpacks plugin;
     private final File backpacksFile;
     private YamlConfiguration backpacksConfig;
     private final Map<UUID, Inventory> loadedInventories;
+    private final AtomicBoolean saving;
 
     /**
      * Create a new BackpackManager.
@@ -30,9 +32,10 @@ public class BackpackManager {
      * @param plugin the plugin instance
      */
     @SuppressWarnings("EI_EXPOSE_REP2")
-    public BackpackManager(Plugin plugin) {
+    public BackpackManager(ExpendableBackpacks plugin) {
         this.plugin = plugin;
         this.loadedInventories = new HashMap<>();
+        this.saving = new AtomicBoolean(false);
 
         // Create data folder if it doesn't exist
         if (!plugin.getDataFolder().exists()) {
@@ -64,11 +67,25 @@ public class BackpackManager {
      * Save the backpacks.yml file.
      */
     private void saveBackpacksFile() {
-        try {
-            backpacksConfig.save(backpacksFile);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save backpacks.yml!", e);
+        if (Bukkit.getServer().isStopping() || plugin.isShuttingDown()) {
+            try {
+                backpacksConfig.save(backpacksFile);
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.SEVERE, "Could not save backpacks.yml!", e);
+            }
+            return;
         }
+        if (saving.get())
+            return;
+        saving.set(true);
+        plugin.getBackpackScheduler().runTaskAsync(() -> {
+            try {
+                backpacksConfig.save(backpacksFile);
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.SEVERE, "Could not save backpacks.yml!", e);
+            }
+            saving.set(false);
+        });
     }
 
     /**

@@ -4,6 +4,7 @@ import com.shweit.expendablebackpacks.items.BackpackItem;
 import com.shweit.expendablebackpacks.items.BackpackTier;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
@@ -36,7 +37,7 @@ public class BackpackProtectionListener implements Listener {
 
         // Prevent placing backpacks with cursor into backpack inventories
         if (topIsBackpack && clickedInventory == topInventory) {
-            if (cursor != null && BackpackItem.isBackpack(cursor)) {
+            if (BackpackItem.isBackpack(cursor)) {
                 event.setCancelled(true);
                 event.getWhoClicked().sendMessage(
                     "§cYou cannot put a backpack inside another backpack!");
@@ -45,10 +46,21 @@ public class BackpackProtectionListener implements Listener {
         }
 
         // Prevent shift-clicking backpacks from player inventory into backpack inventory
-        if (event.isShiftClick() && current != null
-            && BackpackItem.isBackpack(current)) {
+        if (event.isShiftClick() && BackpackItem.isBackpack(current)) {
             // If clicking in player inventory while backpack is open at top
             if (topIsBackpack && clickedInventory != topInventory) {
+                event.setCancelled(true);
+                event.getWhoClicked().sendMessage(
+                    "§cYou cannot put a backpack inside another backpack!");
+                return;
+            }
+        }
+
+        if (event.getClick() == ClickType.NUMBER_KEY) {
+            current = event.getWhoClicked().getInventory().getItem(event.getHotbarButton());
+            // If clicking in player inventory while backpack is open at top
+            if (BackpackItem.isBackpack(current) && topIsBackpack
+                && clickedInventory == topInventory) {
                 event.setCancelled(true);
                 event.getWhoClicked().sendMessage(
                     "§cYou cannot put a backpack inside another backpack!");
